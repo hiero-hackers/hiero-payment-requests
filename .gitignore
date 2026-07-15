@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Generated receipt output
+*.receipt.html
+*.receipt.pdf
+
+# secrets — never commit
+.env
+.env.*
+
+# macOS
+.DS_Store

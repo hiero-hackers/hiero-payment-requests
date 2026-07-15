@@ -1,0 +1,22 @@
+{
+  "name": "hiero-payment-requests",
+  "version": "0.1.0",
+  "description": "Ask for a Hedera payment and prove it was made. A CAIP-identified payment request format, and the matching rule that decides whether a transaction fulfils it. Zero runtime dependencies. Prototype.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "keywords": ["hedera", "hiero", "payment-request", "invoice", "caip", "hip-30", "merchant"],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": ["dist", "docs", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^4.0.0"
+  }
+}

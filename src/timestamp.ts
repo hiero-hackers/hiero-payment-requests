@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * Consensus timestamps — `seconds.nanos`, as the network writes them.
  *
@@ -32,6 +33,7 @@ export function compareTimestamps(a: string, b: string): number {
 
 /** Is this `seconds` or `seconds.nanos`, with at most nine fractional digits? */
 export function isConsensusTimestamp(ts: string): boolean {
+  // eslint-disable-next-line security/detect-unsafe-regex -- both quantifiers are bounded by disjoint character positions (digits, then a literal dot, then ≤9 digits); no overlapping alternation exists to backtrack into
   return /^[0-9]+(\.[0-9]{1,9})?$/.test(ts);
 }
 

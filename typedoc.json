@@ -1,0 +1,14 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs-api",
+  "sourceLinkTemplate": "https://github.com/hiero-hackers/hiero-payment-requests/blob/main/{path}#L{line}",
+  "includeVersion": true,
+  "excludeInternal": true,
+  "readme": "README.md",
+  "highlightLanguages": ["ts", "js", "json", "sh", "mermaid"],
+  "navigationLinks": {
+    "GitHub": "https://github.com/hiero-hackers/hiero-payment-requests"
+  },
+  "treatWarningsAsErrors": true
+}

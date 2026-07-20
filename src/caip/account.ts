@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * CAIP-10 — an account: `hedera:mainnet:0.0.1234` (+ optional HIP-15 checksum).
  *
@@ -5,6 +6,7 @@
  * identifier is why nothing in this library takes a separate `network` option,
  * and why a mainnet request can never silently match a testnet payment.
  */
+import { verifyEntityChecksum } from "./checksum.js";
 import { entityKey, formatEntityId, parseEntityId, type EntityId } from "./entity.js";
 import { formatChain, parseChain, type Network } from "./network.js";
 import { split, tryParser } from "./parse.js";
@@ -16,8 +18,17 @@ export interface AccountRef {
 
 /** Parse `hedera:mainnet:0.0.1234` (or `…-vfmkw`). Throws `CaipError`. */
 export function parseAccount(caip10: string): AccountRef {
-  const [namespace, network, address] = split(caip10, ":", 3, caip10, "expected namespace:network:shard.realm.num");
-  return { network: parseChain(`${namespace}:${network}`), id: parseEntityId(address, caip10) };
+  const [namespace, network, address] = split(
+    caip10,
+    ":",
+    3,
+    caip10,
+    "expected namespace:network:shard.realm.num",
+  );
+  const net = parseChain(`${namespace}:${network}`);
+  const id = parseEntityId(address, caip10);
+  verifyEntityChecksum(id, net, caip10); // a wrong checksum is a typo, not an account
+  return { network: net, id };
 }
 
 export const tryParseAccount = tryParser(parseAccount);
@@ -32,7 +43,8 @@ export function accountKey(ref: AccountRef): string {
   return accountText(ref, entityKey);
 }
 
-export const sameAccount = (a: AccountRef, b: AccountRef): boolean => accountKey(a) === accountKey(b);
+export const sameAccount = (a: AccountRef, b: AccountRef): boolean =>
+  accountKey(a) === accountKey(b);
 
 /** The shape, rendered once; `id` decides whether the entity id carries its
  *  checksum. `formatAccount` and `accountKey` differ only by that function, so

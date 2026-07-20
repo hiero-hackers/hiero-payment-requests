@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * Hedera entity ids — `shard.realm.num`, with an optional HIP-15 checksum.
  *

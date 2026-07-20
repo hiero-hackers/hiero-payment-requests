@@ -1,11 +1,9 @@
 node_modules/
 dist/
+examples/output/
 *.tsbuildinfo
 coverage/
 
-# Generated receipt output
-*.receipt.html
-*.receipt.pdf
 
 # secrets — never commit
 .env
@@ -13,3 +11,5 @@ coverage/
 
 # macOS
 .DS_Store
+docs-api/
+coverage/

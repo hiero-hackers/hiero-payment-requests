@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parseEntityId, tryParseEntityId, formatEntityId, entityKey, sameEntity, CaipError } from "../../src/caip/index.js";
+import {
+  parseEntityId,
+  tryParseEntityId,
+  formatEntityId,
+  entityKey,
+  sameEntity,
+  CaipError,
+} from "../../src/caip/index.js";
 
 describe("entity ids — shard.realm.num", () => {
   it("round-trips, with and without a checksum", () => {
@@ -45,11 +52,20 @@ describe("entityKey — identity, checksum stripped", () => {
   });
 
   it("sameEntity ignores the checksum", () => {
-    expect(sameEntity({ shard: 0n, realm: 0n, num: 1n }, { shard: 0n, realm: 0n, num: 1n, checksum: "vfmkw" })).toBe(true);
+    expect(
+      sameEntity(
+        { shard: 0n, realm: 0n, num: 1n },
+        { shard: 0n, realm: 0n, num: 1n, checksum: "vfmkw" },
+      ),
+    ).toBe(true);
   });
 
   it("sameEntity separates different ids", () => {
-    expect(sameEntity({ shard: 0n, realm: 0n, num: 1n }, { shard: 0n, realm: 0n, num: 2n })).toBe(false);
-    expect(sameEntity({ shard: 0n, realm: 0n, num: 1n }, { shard: 1n, realm: 0n, num: 1n })).toBe(false);
+    expect(sameEntity({ shard: 0n, realm: 0n, num: 1n }, { shard: 0n, realm: 0n, num: 2n })).toBe(
+      false,
+    );
+    expect(sameEntity({ shard: 0n, realm: 0n, num: 1n }, { shard: 1n, realm: 0n, num: 1n })).toBe(
+      false,
+    );
   });
 });

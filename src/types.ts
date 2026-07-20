@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * The vocabulary. Two things: a **request** (what you're asking for) and a
  * **fulfilment** (what the chain says about it).

@@ -1,22 +1,86 @@
 {
-  "name": "hiero-payment-requests",
+  "name": "@hiero-hackers/hiero-payment-requests",
   "version": "0.1.0",
-  "description": "Ask for a Hedera payment and prove it was made. A CAIP-identified payment request format, and the matching rule that decides whether a transaction fulfils it. Zero runtime dependencies. Prototype.",
+  "description": "Ask for a Hedera payment and prove it was made. CAIP-identified requests, a hiero-pay: wire format with built-in QR codes, and the matching rule that decides whether a transaction fulfils it \u2014 plus remainders and refund instructions when it doesn't. Zero runtime dependencies, browser-ready. Prototype.",
   "type": "module",
   "license": "Apache-2.0",
-  "keywords": ["hedera", "hiero", "payment-request", "invoice", "caip", "hip-30", "merchant"],
-  "exports": {
-    ".": "./dist/index.js"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiero-hackers/hiero-payment-requests.git"
   },
-  "files": ["dist", "docs", "README.md", "LICENSE"],
+  "bugs": "https://github.com/hiero-hackers/hiero-payment-requests/issues",
+  "homepage": "https://github.com/hiero-hackers/hiero-payment-requests#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "keywords": [
+    "hedera",
+    "hiero",
+    "payment-request",
+    "payments",
+    "invoice",
+    "qr-code",
+    "wire-format",
+    "checkout",
+    "caip",
+    "hip-30",
+    "merchant",
+    "browser"
+  ],
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "schema",
+    "vectors",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "verify": "npm run typecheck && npm run typecheck:examples && npm run lint && npm run format:check && npm run test:coverage && npm run docs && npm run lint:package && npm run test:pack",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:examples": "tsc -p tsconfig.examples.json",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:pack": "node scripts/pack-smoke.mjs",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "format": "prettier --write src test examples scripts *.md",
+    "format:check": "prettier --check src test examples scripts *.md",
+    "lint:package": "publint && attw --pack --profile esm-only .",
+    "docs": "typedoc",
     "prepare": "npm run build"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "ajv": "^8.20.0",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-security": "^4.0.1",
+    "fast-check": "^4.9.0",
+    "globals": "^17.7.0",
+    "jsqr": "^1.4.0",
+    "prettier": "^3.9.5",
+    "publint": "^0.3.21",
+    "typedoc": "^0.28.20",
     "typescript": "^5.5.0",
+    "typescript-eslint": "^8.64.0",
     "vitest": "^4.0.0"
   }
 }

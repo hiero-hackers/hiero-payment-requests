@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * CAIP identifiers for Hedera — per
  * [HIP-30](https://hips.hedera.com/HIP/hip-30.html) (which subsumes HIP-20) and
@@ -34,11 +35,37 @@
  * identifier in the library.
  */
 export { CaipError } from "./error.js";
-export { parseChain, formatChain, isNetwork } from "./network.js";
-export type { Network } from "./network.js";
-export { parseEntityId, tryParseEntityId, formatEntityId, entityKey, sameEntity } from "./entity.js";
+export {
+  parseChain,
+  formatChain,
+  isNetwork,
+  NETWORKS,
+  HIERO_NETWORKS,
+  networkSpec,
+} from "./network.js";
+export type { Network, NetworkSpec } from "./network.js";
+export {
+  parseEntityId,
+  tryParseEntityId,
+  formatEntityId,
+  entityKey,
+  sameEntity,
+} from "./entity.js";
 export type { EntityId } from "./entity.js";
-export { parseAccount, tryParseAccount, formatAccount, accountKey, sameAccount } from "./account.js";
+export {
+  parseAccount,
+  tryParseAccount,
+  formatAccount,
+  accountKey,
+  sameAccount,
+} from "./account.js";
 export type { AccountRef } from "./account.js";
-export { parseAsset, tryParseAsset, formatAsset, assetKey, sameAsset, HBAR_SLIP44 } from "./asset.js";
+export {
+  parseAsset,
+  tryParseAsset,
+  formatAsset,
+  assetKey,
+  sameAsset,
+  HBAR_SLIP44,
+} from "./asset.js";
 export type { AssetRef } from "./asset.js";

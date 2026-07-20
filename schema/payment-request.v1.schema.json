@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hiero-hackers/hiero-payment-requests/main/schema/payment-request.v1.schema.json",
+  "title": "hiero-payment-requests PaymentRequest (JSON wire form), v1",
+  "description": "The shape produced by encodeRequest / accepted by decodeRequest. The amount is an exact integer STRING in the asset's smallest unit — there are no decimals on the wire, ever. The schema is a contract: a breaking change bumps the version in the filename, $id, and the \"v\" field.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "recipient", "asset", "amount", "reference"],
+  "properties": {
+    "v": { "const": 1 },
+    "recipient": {
+      "type": "string",
+      "description": "CAIP-10, e.g. hedera:mainnet:0.0.1234 (optionally with a verified HIP-15 checksum)",
+      "pattern": "^hedera:[a-z]+:.+$"
+    },
+    "asset": {
+      "type": "string",
+      "description": "CAIP-19, e.g. hedera:mainnet/token:0.0.720",
+      "pattern": "^hedera:[a-z]+/.+$"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Integer base units (tinybar / token smallest unit) as an exact decimal string"
+    },
+    "reference": { "type": "string", "minLength": 1 },
+    "expiresAt": {
+      "type": "string",
+      "pattern": "^[0-9]+(\\.[0-9]{1,9})?$",
+      "description": "Consensus timestamp seconds.nanos — the chain's clock, not wall clock"
+    },
+    "label": { "type": "string", "description": "Human-facing only; never matched on" }
+  }
+}

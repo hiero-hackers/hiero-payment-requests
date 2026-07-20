@@ -41,9 +41,12 @@ describe("isAfter", () => {
 });
 
 describe("isConsensusTimestamp", () => {
-  it.each(["0", "1783012345", "1783012345.0", "1783012345.000000000", "1783012345.9"])("accepts %s", (ts) => {
-    expect(isConsensusTimestamp(ts)).toBe(true);
-  });
+  it.each(["0", "1783012345", "1783012345.0", "1783012345.000000000", "1783012345.9"])(
+    "accepts %s",
+    (ts) => {
+      expect(isConsensusTimestamp(ts)).toBe(true);
+    },
+  );
 
   it.each([
     ["2026-07-15T00:00:00Z", "wall clock, not consensus"],

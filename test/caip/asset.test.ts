@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { parseAsset, tryParseAsset, formatAsset, assetKey, sameAsset, CaipError, HBAR_SLIP44 } from "../../src/caip/index.js";
+import {
+  parseAsset,
+  tryParseAsset,
+  formatAsset,
+  assetKey,
+  sameAsset,
+  CaipError,
+  HBAR_SLIP44,
+} from "../../src/caip/index.js";
 
 describe("CAIP-19 assets — HIP-30's vectors", () => {
   it.each([
@@ -51,25 +59,28 @@ describe("tryParseAsset", () => {
 
 describe("assetKey — identity, checksum stripped", () => {
   it("a checksum never changes identity", () => {
-    expect(assetKey(parseAsset("hedera:mainnet/token:0.0.123-vfmkw")))
-      .toBe(assetKey(parseAsset("hedera:mainnet/token:0.0.123")));
+    expect(assetKey(parseAsset("hedera:mainnet/token:0.0.123-vfmkw"))).toBe(
+      assetKey(parseAsset("hedera:mainnet/token:0.0.123")),
+    );
   });
 
   it("separates the things it must", () => {
     const a = parseAsset("hedera:mainnet/nft:0.0.721/3");
-    expect(sameAsset(a, parseAsset("hedera:mainnet/nft:0.0.721/4"))).toBe(false);   // serial
-    expect(sameAsset(a, parseAsset("hedera:testnet/nft:0.0.721/3"))).toBe(false);   // network
-    expect(sameAsset(a, parseAsset("hedera:mainnet/token:0.0.721"))).toBe(false);   // kind
-    expect(sameAsset(a, parseAsset("hedera:mainnet/nft:0.0.721-vfmkw/3"))).toBe(true); // checksum
+    expect(sameAsset(a, parseAsset("hedera:mainnet/nft:0.0.721/4"))).toBe(false); // serial
+    expect(sameAsset(a, parseAsset("hedera:testnet/nft:0.0.721/3"))).toBe(false); // network
+    expect(sameAsset(a, parseAsset("hedera:mainnet/token:0.0.721"))).toBe(false); // kind
+    expect(sameAsset(a, parseAsset("hedera:mainnet/nft:0.0.721-psrfq/3"))).toBe(true); // checksum
   });
 
   it("mainnet HBAR is not testnet HBAR", () => {
-    expect(sameAsset(parseAsset("hedera:mainnet/slip44:3030"), parseAsset("hedera:testnet/slip44:3030"))).toBe(false);
+    expect(
+      sameAsset(parseAsset("hedera:mainnet/slip44:3030"), parseAsset("hedera:testnet/slip44:3030")),
+    ).toBe(false);
   });
 
   it("is usable as a Map key", () => {
     const seen = new Map<string, number>();
     seen.set(assetKey(parseAsset("hedera:mainnet/token:0.0.720")), 1);
-    expect(seen.get(assetKey(parseAsset("hedera:mainnet/token:0.0.720-vfmkw")))).toBe(1);
+    expect(seen.get(assetKey(parseAsset("hedera:mainnet/token:0.0.720-hitxz")))).toBe(1);
   });
 });

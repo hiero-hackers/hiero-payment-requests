@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * Building and validating a request. `createRequest` parses every identifier up
  * front, so a malformed recipient fails *here* — at the point you can still fix
@@ -32,11 +33,21 @@ export function createRequest(request: PaymentRequest): ResolvedRequest {
   if (request.amount <= 0n) {
     throw new RequestError(`amount must be positive (got ${request.amount})`);
   }
+  if (asset.kind === "nft" && request.amount !== 1n) {
+    throw new RequestError(
+      `an NFT request names one specific serial, so its amount can only be 1 ` +
+        `(got ${request.amount}) — any other amount could never be fulfilled`,
+    );
+  }
   if (request.reference.length === 0) {
-    throw new RequestError("reference must not be empty — it is what ties a payment back to this request");
+    throw new RequestError(
+      "reference must not be empty — it is what ties a payment back to this request",
+    );
   }
   if (request.expiresAt !== undefined && !isConsensusTimestamp(request.expiresAt)) {
-    throw new RequestError(`expiresAt must be a consensus timestamp "seconds.nanos" (got "${request.expiresAt}")`);
+    throw new RequestError(
+      `expiresAt must be a consensus timestamp "seconds.nanos" (got "${request.expiresAt}")`,
+    );
   }
 
   return { request, recipient, asset };

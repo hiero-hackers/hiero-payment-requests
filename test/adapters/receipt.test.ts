@@ -23,29 +23,46 @@ describe("fromReceipt", () => {
   });
 
   it("drops negative movements — a receipt for money SENT is not a payment received", () => {
-    const sent = fromReceipt({ ...receipt, movements: [{ asset: "0.0.720", amount: -100_000000n, kind: "token" }] }, "mainnet");
+    const sent = fromReceipt(
+      { ...receipt, movements: [{ asset: "0.0.720", amount: -100_000000n, kind: "token" }] },
+      "mainnet",
+    );
     expect(sent.credits).toEqual([]);
   });
 
   it("drops a zero movement", () => {
-    expect(fromReceipt({ ...receipt, movements: [{ asset: "0.0.720", amount: 0n, kind: "token" }] }, "mainnet").credits).toEqual([]);
+    expect(
+      fromReceipt(
+        { ...receipt, movements: [{ asset: "0.0.720", amount: 0n, kind: "token" }] },
+        "mainnet",
+      ).credits,
+    ).toEqual([]);
   });
 
   it("maps an HBAR movement to the provisional native asset", () => {
-    const hbar = fromReceipt({ ...receipt, movements: [{ asset: "HBAR", amount: 5n, kind: "hbar" }] }, "mainnet");
+    const hbar = fromReceipt(
+      { ...receipt, movements: [{ asset: "HBAR", amount: 5n, kind: "hbar" }] },
+      "mainnet",
+    );
     expect(hbar.credits[0]?.asset).toEqual({ kind: "hbar", network: "mainnet" });
   });
 
   it("carries several movements through independently", () => {
     const both = fromReceipt(
-      { ...receipt, movements: [{ asset: "HBAR", amount: 5n, kind: "hbar" }, { asset: "0.0.720", amount: 7n, kind: "token" }] },
+      {
+        ...receipt,
+        movements: [
+          { asset: "HBAR", amount: 5n, kind: "hbar" },
+          { asset: "0.0.720", amount: 7n, kind: "token" },
+        ],
+      },
       "mainnet",
     );
     expect(both.credits).toHaveLength(2);
   });
 
   it("defaults a missing memo to empty rather than undefined", () => {
-    const { memo, ...noMemo } = receipt;
+    const { memo: _memo, ...noMemo } = receipt;
     expect(fromReceipt(noMemo, "mainnet").memo).toBe("");
   });
 
@@ -60,13 +77,68 @@ describe("fromReceipt", () => {
   });
 });
 
+describe("fromReceipt carries NFTs — a serial is not a sum", () => {
+  it("an incoming NFT becomes one credit of amount 1 for exactly that serial", () => {
+    const payment = fromReceipt(
+      { ...receipt, movements: [], nft: [{ tokenId: "0.0.721", serial: 3n, direction: "in" }] },
+      "mainnet",
+    );
+    expect(payment.credits).toEqual([
+      {
+        account: "0.0.1234",
+        asset: {
+          kind: "nft",
+          network: "mainnet",
+          id: { shard: 0n, realm: 0n, num: 721n },
+          serial: 3n,
+        },
+        amount: 1n,
+      },
+    ]);
+  });
+
+  it("an outgoing NFT is dropped — sending one away is not being paid", () => {
+    const payment = fromReceipt(
+      { ...receipt, movements: [], nft: [{ tokenId: "0.0.721", serial: 3n, direction: "out" }] },
+      "mainnet",
+    );
+    expect(payment.credits).toEqual([]);
+  });
+
+  it("NFT and fungible movements ride the same receipt independently", () => {
+    const payment = fromReceipt(
+      { ...receipt, nft: [{ tokenId: "0.0.721", serial: 3n, direction: "in" }] },
+      "mainnet",
+    );
+    expect(payment.credits).toHaveLength(2);
+    expect(payment.credits.map((c) => c.asset.kind).sort()).toEqual(["nft", "token"]);
+  });
+
+  it("rejects a malformed NFT token id rather than coercing it", () => {
+    expect(() =>
+      fromReceipt(
+        { ...receipt, nft: [{ tokenId: "-1.0.721", serial: 3n, direction: "in" }] },
+        "mainnet",
+      ),
+    ).toThrow(CaipError);
+  });
+});
+
 describe("fromReceipt reuses the real id parser (regression)", () => {
   it("rejects a malformed token id rather than coercing it", () => {
     // The old hand-rolled parser used BigInt() directly, so a NEGATIVE shard
     // sailed through as a valid id. parseEntityId rejects it.
-    expect(() => fromReceipt({ ...receipt, movements: [{ asset: "-1.0.720", amount: 1n, kind: "token" }] }, "mainnet"))
-      .toThrow(CaipError);
-    expect(() => fromReceipt({ ...receipt, movements: [{ asset: "0.720", amount: 1n, kind: "token" }] }, "mainnet"))
-      .toThrow(CaipError);
+    expect(() =>
+      fromReceipt(
+        { ...receipt, movements: [{ asset: "-1.0.720", amount: 1n, kind: "token" }] },
+        "mainnet",
+      ),
+    ).toThrow(CaipError);
+    expect(() =>
+      fromReceipt(
+        { ...receipt, movements: [{ asset: "0.720", amount: 1n, kind: "token" }] },
+        "mainnet",
+      ),
+    ).toThrow(CaipError);
   });
 });

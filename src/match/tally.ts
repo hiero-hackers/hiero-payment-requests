@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * Stage 2 — **what did the recipient actually receive?**
  *
@@ -40,23 +41,33 @@ export interface Tally {
 
 /** Sum what these payments credited the recipient, in the requested asset. */
 export function tally(claimed: readonly Payment[], resolved: ResolvedRequest): Tally {
-  const { recipient, asset } = resolved;
   let received = 0n;
   const paying: Payment[] = [];
 
   for (const payment of claimed) {
-    let credited = 0n;
-    for (const credit of payment.credits) {
-      if (!creditsRecipient(credit.account, recipient)) continue;
-      if (!sameAsset(credit.asset, asset)) continue;
-      credited += credit.amount;
-    }
+    const credited = creditedTotal(payment, resolved);
     if (credited > 0n) {
       received += credited;
       paying.push(payment);
     }
   }
   return { claimed, paying, received };
+}
+
+/**
+ * What ONE payment credited the recipient in the requested asset — the sum
+ * every stage that reasons about "how much arrived" must agree on. Exported
+ * for `byUniqueAmount`, which correlates on this very number.
+ */
+export function creditedTotal(payment: Payment, resolved: ResolvedRequest): bigint {
+  const { recipient, asset } = resolved;
+  let credited = 0n;
+  for (const credit of payment.credits) {
+    if (!creditsRecipient(credit.account, recipient)) continue;
+    if (!sameAsset(credit.asset, asset)) continue;
+    credited += credit.amount;
+  }
+  return credited;
 }
 
 function creditsRecipient(account: string, recipient: AccountRef): boolean {

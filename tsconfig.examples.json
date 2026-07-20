@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  // Despite the name, this also typechecks test/ — it is the ONLY tsc pass
+  // the tests get (the main tsconfig covers src only).
+  "include": ["examples/**/*.ts", "test/**/*.ts"]
+}

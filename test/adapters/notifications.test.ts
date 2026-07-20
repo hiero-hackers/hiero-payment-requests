@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { fulfils } from "../../src/adapters/notifications.js";
+import { fulfils, fulfilsAccumulating } from "../../src/adapters/notifications.js";
 import { fromReceipt, type ReceiptLike } from "../../src/adapters/receipt.js";
-import type { PaymentRequest } from "../../src/types.js";
+import type { Payment, PaymentRequest } from "../../src/types.js";
 
 const invoice: PaymentRequest = {
   recipient: "hedera:testnet:0.0.1234",
@@ -62,7 +62,11 @@ describe("fulfils — what it deliberately does NOT fire on", () => {
   });
 
   it("does not fire on the wrong asset", () => {
-    expect(condition.matches(receipt(100_000000n, { movements: [{ asset: "HBAR", amount: 100_000000n, kind: "hbar" }] }))).toBe(false);
+    expect(
+      condition.matches(
+        receipt(100_000000n, { movements: [{ asset: "HBAR", amount: 100_000000n, kind: "hbar" }] }),
+      ),
+    ).toBe(false);
   });
 
   it("does not fire when the receipt is for money SENT, not received", () => {
@@ -83,5 +87,69 @@ describe("fulfils — the single-receipt boundary", () => {
     // and the reason `match` exists as the fuller API.
     expect(condition.matches(receipt(50_000000n))).toBe(false);
     expect(condition.matches(receipt(50_000000n))).toBe(false);
+  });
+});
+
+describe("fulfilsAccumulating — partial payments complete the watch-loop story (audit #3)", () => {
+  const request: PaymentRequest = {
+    recipient: "hedera:mainnet:0.0.1234",
+    asset: "hedera:mainnet/token:0.0.720",
+    amount: 100n,
+    reference: "INV-ACC-1",
+  };
+  const payment = (transactionId: string, amount: bigint, memo = "for INV-ACC-1"): Payment => ({
+    transactionId,
+    consensusTimestamp: "1.000000000",
+    network: "mainnet",
+    memo,
+    succeeded: true,
+    credits: [
+      {
+        account: "0.0.1234",
+        asset: { kind: "token", network: "mainnet", id: { shard: 0n, realm: 0n, num: 720n } },
+        amount,
+      },
+    ],
+  });
+
+  it("fires on the receipt that completes 60 + 40 — the case fulfils can never see", () => {
+    const condition = fulfilsAccumulating(request, (p: Payment) => p);
+    expect(condition.matches(payment("0.0.9-1-1", 60n))).toBe(false); // underpaid so far
+    expect(condition.matches(payment("0.0.9-2-2", 40n))).toBe(true); // completed here
+  });
+
+  it("fires exactly once — later payments to a settled request stay silent", () => {
+    const condition = fulfilsAccumulating(request, (p: Payment) => p);
+    condition.matches(payment("0.0.9-1-1", 60n));
+    expect(condition.matches(payment("0.0.9-2-2", 40n))).toBe(true);
+    expect(condition.matches(payment("0.0.9-3-3", 25n))).toBe(false); // extra money, no re-fire
+  });
+
+  it("re-delivery cannot complete a payment twice or early (at-least-once safe)", () => {
+    const condition = fulfilsAccumulating(request, (p: Payment) => p);
+    const first = payment("0.0.9-1-1", 60n);
+    expect(condition.matches(first)).toBe(false);
+    expect(condition.matches(first)).toBe(false); // same tx again: not new money
+    expect(condition.matches(payment("0.0.9-2-2", 40n))).toBe(true);
+    expect(condition.matches(payment("0.0.9-2-2", 40n))).toBe(false); // replayed completion
+  });
+
+  it("completion by overpayment still completes — 60 + 50 fires", () => {
+    const condition = fulfilsAccumulating(request, (p: Payment) => p);
+    condition.matches(payment("0.0.9-1-1", 60n));
+    expect(condition.matches(payment("0.0.9-2-2", 50n))).toBe(true);
+  });
+
+  it("unrelated receipts neither fire nor accumulate", () => {
+    const condition = fulfilsAccumulating(request, (p: Payment) => p);
+    expect(condition.matches(payment("0.0.9-1-1", 100n, "some other memo"))).toBe(false);
+    // The full amount arriving later still fires — the unrelated one contributed nothing.
+    expect(condition.matches(payment("0.0.9-2-2", 100n))).toBe(true);
+  });
+
+  it("the stateless fulfils stays strict — the two variants are different promises", () => {
+    const strict = fulfils(request, (p: Payment) => p);
+    expect(strict.matches(payment("0.0.9-1-1", 60n))).toBe(false);
+    expect(strict.matches(payment("0.0.9-2-2", 40n))).toBe(false); // stateless: 40 alone ≠ paid
   });
 });

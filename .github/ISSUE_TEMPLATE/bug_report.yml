@@ -1,0 +1,31 @@
+name: Bug report
+description: Something produced a wrong, misleading, or broken receipt
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: >
+        What did you see, and what did you expect? For a wrong receipt, paste
+        the rendered output — and remember memos are attacker-writable, so a
+        "weird" receipt may be the defenses working as intended.
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Input that reproduces it
+      description: >
+        The transaction object you passed (redact account ids if you prefer),
+        or a minimal fixture. A failing test case is the gold standard.
+      render: ts
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "@hiero-hackers/hiero-payment-requests@0.1.0, Node 22"
+    validations:
+      required: true

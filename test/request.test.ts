@@ -22,7 +22,9 @@ describe("createRequest — fail at build time, not three weeks later", () => {
   });
 
   it("rejects a request that spans networks", () => {
-    expect(() => createRequest({ ...base, asset: "hedera:testnet/token:0.0.720" })).toThrow(RequestError);
+    expect(() => createRequest({ ...base, asset: "hedera:testnet/token:0.0.720" })).toThrow(
+      RequestError,
+    );
   });
 
   it.each([
@@ -31,7 +33,7 @@ describe("createRequest — fail at build time, not three weeks later", () => {
     [{ reference: "" }, "empty reference"],
     [{ expiresAt: "not-a-timestamp" }, "bad expiry"],
     [{ expiresAt: "2026-07-15T00:00:00Z" }, "wall-clock expiry instead of consensus"],
-  ])("rejects %o (%s)", (over) => {
+  ])("rejects %o (%s)", (over, _label) => {
     expect(() => createRequest({ ...base, ...over })).toThrow(RequestError);
   });
 

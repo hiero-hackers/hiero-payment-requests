@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * The matching rule — the part that is actually worth a library.
  *
@@ -26,7 +27,10 @@
  */
 export { match } from "./pipeline.js";
 export type { MatchOptions } from "./pipeline.js";
-export { correlate } from "./correlate.js";
+export { correlate, canonicalize, byUniqueAmount } from "./correlate.js";
+export type { CorrelationStrategy } from "./correlate.js";
+export { assignDistinctAmount } from "./amounts.js";
+export type { AssignAmountOptions } from "./amounts.js";
 export { tally } from "./tally.js";
 export type { Tally } from "./tally.js";
 export { classify } from "./classify.js";

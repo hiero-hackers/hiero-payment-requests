@@ -13,9 +13,18 @@
  * they'd come from `fromReceipt(...)` over a mirror or stream client.
  * Needs `npm install && npm run build`.
  */
-import { match, type Payment, type PaymentRequest, type Fulfilment } from "../dist/index.js";
+import {
+  match,
+  type Payment,
+  type PaymentRequest,
+  type Fulfilment,
+} from "@hiero-hackers/hiero-payment-requests";
 
-const USDC = { kind: "token", network: "mainnet", id: { shard: 0n, realm: 0n, num: 720n } } as const;
+const USDC = {
+  kind: "token",
+  network: "mainnet",
+  id: { shard: 0n, realm: 0n, num: 720n },
+} as const;
 const DECIMALS = 6;
 
 // A 100 USDC invoice, expiring at a known consensus timestamp.
@@ -61,13 +70,24 @@ const scenarios: Scenario[] = [
     why: "the only difference from the row above is `now` — that's why match takes it",
   },
 
-  { what: "pays exactly 100", payments: [paid(100_000000n)], why: "the boring case, and the only one a naive matcher gets right" },
+  {
+    what: "pays exactly 100",
+    payments: [paid(100_000000n)],
+    why: "the boring case, and the only one a naive matcher gets right",
+  },
 
-  { what: "pays only 60", payments: [paid(60_000000n)], why: "you need the SHORTFALL, not just 'false'" },
+  {
+    what: "pays only 60",
+    payments: [paid(60_000000n)],
+    why: "you need the SHORTFALL, not just 'false'",
+  },
 
   {
     what: "pays twice (100 + 100)",
-    payments: [paid(100_000000n, { transactionId: "a" }), paid(100_000000n, { transactionId: "b" })],
+    payments: [
+      paid(100_000000n, { transactionId: "a" }),
+      paid(100_000000n, { transactionId: "b" }),
+    ],
     why: "surfaced with BOTH transactions so you can refund one — not swallowed as 'already paid'",
   },
 
@@ -85,7 +105,13 @@ const scenarios: Scenario[] = [
 
   {
     what: "sends HBAR instead of USDC",
-    payments: [paid(100_000000n, { credits: [{ account: "0.0.1234", asset: { kind: "hbar", network: "mainnet" }, amount: 100_000000n }] })],
+    payments: [
+      paid(100_000000n, {
+        credits: [
+          { account: "0.0.1234", asset: { kind: "hbar", network: "mainnet" }, amount: 100_000000n },
+        ],
+      }),
+    ],
     why: "someone DID send something — that's not 'unpaid', and the difference matters when they email you",
   },
 
@@ -105,7 +131,9 @@ const scenarios: Scenario[] = [
 
 // ── Report ───────────────────────────────────────────────────────────────
 
-console.log(`\nInvoice ${invoice.reference} — ${format(invoice.amount)} USDC to ${invoice.recipient}`);
+console.log(
+  `\nInvoice ${invoice.reference} — ${format(invoice.amount)} USDC to ${invoice.recipient}`,
+);
 console.log(`Deadline: consensus ${invoice.expiresAt}\n`);
 
 for (const { what, payments, why, now } of scenarios) {

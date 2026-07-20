@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * CAIP-19 — an asset:
  *
@@ -21,25 +22,36 @@
  * See docs/ARCHITECTURE.md § The HBAR gap.
  * ────────────────────────────────────────────────────────────────────────
  */
+import { verifyEntityChecksum } from "./checksum.js";
 import { entityKey, formatEntityId, parseEntityId, type EntityId } from "./entity.js";
 import { CaipError } from "./error.js";
-import { formatChain, parseChain, type Network } from "./network.js";
+import { formatChain, networkSpec, parseChain, type Network } from "./network.js";
 import { parseUint, tryParser } from "./parse.js";
 
-/** SLIP-44 coin type for the provisional native-HBAR identifier. Not in HIP-30. */
+/** SLIP-44 coin type for the provisional native-HBAR identifier. Not in HIP-30.
+ *  This constant is Hedera's value; parsing and formatting use the per-network
+ *  value from the network table (`nativeSlip44`), so another Hiero network's
+ *  native coin needs a table row, not an edit here. */
 export const HBAR_SLIP44 = "3030";
 
 /** `hbar` is the provisional form — see the note at the top of this file. */
 export type AssetRef =
   | { readonly kind: "hbar"; readonly network: Network }
   | { readonly kind: "token"; readonly network: Network; readonly id: EntityId }
-  | { readonly kind: "nft"; readonly network: Network; readonly id: EntityId; readonly serial: bigint };
+  | {
+      readonly kind: "nft";
+      readonly network: Network;
+      readonly id: EntityId;
+      readonly serial: bigint;
+    };
 
 /** Parse a CAIP-19 asset. Throws `CaipError`. */
 export function parseAsset(caip19: string): AssetRef {
   const slash = caip19.indexOf("/");
   if (slash === -1) {
-    throw new CaipError(`not a CAIP-19 asset: ${caip19} (expected chain/assetNamespace:assetReference)`);
+    throw new CaipError(
+      `not a CAIP-19 asset: ${caip19} (expected chain/assetNamespace:assetReference)`,
+    );
   }
   const network = parseChain(caip19.slice(0, slash));
 
@@ -52,20 +64,29 @@ export function parseAsset(caip19: string): AssetRef {
 
   switch (assetNamespace) {
     case "slip44": {
-      if (assetReference !== HBAR_SLIP44) {
-        throw new CaipError(`unsupported slip44 coin type ${assetReference} (expected ${HBAR_SLIP44} for HBAR)`);
+      const native = networkSpec(network).nativeSlip44;
+      if (assetReference !== native) {
+        throw new CaipError(
+          `unsupported slip44 coin type ${assetReference} on ${network} ` +
+            `(the native coin there is ${native})`,
+        );
       }
       return { kind: "hbar", network };
     }
-    case "token":
-      return { kind: "token", network, id: parseEntityId(assetReference, caip19) };
+    case "token": {
+      const id = parseEntityId(assetReference, caip19);
+      verifyEntityChecksum(id, network, caip19);
+      return { kind: "token", network, id };
+    }
     case "nft": {
       const cut = assetReference.lastIndexOf("/");
       if (cut === -1) throw new CaipError(`NFT asset needs a serial: ${caip19}`);
+      const id = parseEntityId(assetReference.slice(0, cut), caip19);
+      verifyEntityChecksum(id, network, caip19);
       return {
         kind: "nft",
         network,
-        id: parseEntityId(assetReference.slice(0, cut), caip19),
+        id,
         serial: parseUint(assetReference.slice(cut + 1), caip19),
       };
     }
@@ -95,7 +116,7 @@ function assetText(ref: AssetRef, id: (e: EntityId) => string): string {
   const chain = formatChain(ref.network);
   switch (ref.kind) {
     case "hbar":
-      return `${chain}/slip44:${HBAR_SLIP44}`;
+      return `${chain}/slip44:${networkSpec(ref.network).nativeSlip44}`;
     case "token":
       return `${chain}/token:${id(ref.id)}`;
     case "nft":

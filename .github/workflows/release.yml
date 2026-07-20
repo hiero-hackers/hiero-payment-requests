@@ -1,0 +1,114 @@
+name: Release
+
+# Publishes to the GitHub Packages npm registry when a version tag is pushed:
+#   git tag -s v0.1.0 && git push origin v0.1.0
+# The tag must match package.json's version — the guard step refuses otherwise.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Gates, then publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # sign the build-provenance attestation
+      attestations: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+
+      - name: Tag must match package.json version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "tag v$tag does not match package.json version $version" >&2
+            exit 1
+          fi
+
+      # The publish path is at least as strict as the PR path: every CI gate
+      # runs again HERE, on exactly the commit being published — including
+      # lint:package (publint + attw on the artifacts about to ship) and the
+      # pack smoke test, which matter most at this moment.
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run typecheck:examples
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:coverage
+      - run: npm run docs
+      - run: npm run lint:package
+      - run: npm run test:pack
+      # Build provenance: npm provenance is npmjs-only, but a GitHub
+      # attestation gives consumers the same guarantee here — the published
+      # tarball is cryptographically tied to this repo, workflow, and commit.
+      # Verify with: gh attestation verify <tgz> --repo hiero-hackers/hiero-payment-requests
+      - name: Pack for attestation
+        run: npm pack
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: "*.tgz"
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # GitHub Packages ignores `--access public`: the FIRST publish of a
+      # package lands PRIVATE, and only a human in the UI can flip it (see
+      # RELEASING.md). A warning, not a failure — the version IS published;
+      # what remains is one click.
+      - name: Audit package visibility
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          vis=$(gh api "orgs/hiero-hackers/packages/npm/hiero-payment-requests" --jq .visibility 2>/dev/null || echo "unknown")
+          echo "package visibility: $vis"
+          if [ "$vis" = "private" ]; then
+            echo "::warning::@hiero-hackers/hiero-payment-requests is PRIVATE on GitHub Packages — flip it: https://github.com/orgs/hiero-hackers/packages/npm/hiero-payment-requests/settings → Danger Zone → Change visibility → Public"
+          fi
+
+  # A GitHub Release for the tag, with notes auto-generated from the merged
+  # PRs and commits since the previous release — no hand-written changelog
+  # to maintain or forget. Idempotent: a re-run skips an existing release.
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [publish]
+    permissions:
+      contents: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Create release with generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes

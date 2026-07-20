@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { parseAccount, tryParseAccount, formatAccount, accountKey, sameAccount, CaipError } from "../../src/caip/index.js";
+import {
+  parseAccount,
+  tryParseAccount,
+  formatAccount,
+  accountKey,
+  sameAccount,
+  CaipError,
+} from "../../src/caip/index.js";
 
 /** Lifted verbatim from CAIP-76. The spec is the reference, not our imagination. */
 const SPEC_VECTORS = [
@@ -48,7 +55,9 @@ describe("accountKey — identity is the canonical string", () => {
   });
 
   it("the same account on two networks is two accounts", () => {
-    expect(sameAccount(parseAccount("hedera:mainnet:0.0.2"), parseAccount("hedera:testnet:0.0.2"))).toBe(false);
+    expect(
+      sameAccount(parseAccount("hedera:mainnet:0.0.2"), parseAccount("hedera:testnet:0.0.2")),
+    ).toBe(false);
   });
 
   it("is usable as a Map key — the reason it exists", () => {

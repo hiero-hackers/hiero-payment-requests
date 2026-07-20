@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * Parsing helpers shared by every identifier layer. Internal — not re-exported
  * from `index.ts`.
@@ -9,11 +10,30 @@ import { CaipError } from "./error.js";
  * a real tuple — this is what removes the `as [string, string, string]` cast
  * that `noUncheckedIndexedAccess` otherwise demands in every parser.
  */
-export function split(text: string, on: string, count: 2, context: string, expected: string): [string, string];
-export function split(text: string, on: string, count: 3, context: string, expected: string): [string, string, string];
-export function split(text: string, on: string, count: number, context: string, expected: string): string[] {
+export function split(
+  text: string,
+  on: string,
+  count: 2,
+  context: string,
+  expected: string,
+): [string, string];
+export function split(
+  text: string,
+  on: string,
+  count: 3,
+  context: string,
+  expected: string,
+): [string, string, string];
+export function split(
+  text: string,
+  on: string,
+  count: number,
+  context: string,
+  expected: string,
+): string[] {
   const parts = text.split(on);
-  if (parts.length !== count) throw new CaipError(`bad identifier "${text}" in ${context} (${expected})`);
+  if (parts.length !== count)
+    throw new CaipError(`bad identifier "${text}" in ${context} (${expected})`);
   return parts;
 }
 
@@ -21,7 +41,9 @@ export function split(text: string, on: string, count: number, context: string, 
  * `parse*` → `tryParse*`. Rethrows anything that isn't a `CaipError`, so a
  * genuine bug never disguises itself as "not a valid identifier".
  */
-export function tryParser<A extends unknown[], R>(parse: (...args: A) => R): (...args: A) => R | undefined {
+export function tryParser<A extends unknown[], R>(
+  parse: (...args: A) => R,
+): (...args: A) => R | undefined {
   return (...args) => {
     try {
       return parse(...args);

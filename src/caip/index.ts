@@ -44,6 +44,7 @@ export {
   networkSpec,
 } from "./network.js";
 export type { Network, NetworkSpec } from "./network.js";
+export { expectedChecksum } from "./checksum.js";
 export {
   parseEntityId,
   tryParseEntityId,

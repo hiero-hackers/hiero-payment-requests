@@ -1,6 +1,6 @@
 {
   "name": "@hiero-hackers/hiero-payment-requests",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ask for a Hedera payment and prove it was made. CAIP-identified requests, a hiero-pay: wire format with built-in QR codes, and the matching rule that decides whether a transaction fulfils it \u2014 plus remainders and refund instructions when it doesn't. Zero runtime dependencies, browser-ready. Prototype.",
   "type": "module",
   "license": "Apache-2.0",
@@ -37,7 +37,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./vectors/wire.v1.json": "./vectors/wire.v1.json",
+    "./schema/payment-request.v1.schema.json": "./schema/payment-request.v1.schema.json"
   },
   "files": [
     "dist",

@@ -84,6 +84,7 @@ export {
   NETWORKS,
   HIERO_NETWORKS,
   networkSpec,
+  expectedChecksum,
 } from "./caip/index.js";
 export type { Network, NetworkSpec, EntityId, AccountRef, AssetRef } from "./caip/index.js";
 

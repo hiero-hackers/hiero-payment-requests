@@ -78,7 +78,7 @@
     "fast-check": "^4.9.0",
     "globals": "^17.7.0",
     "jsqr": "^1.4.0",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "publint": "^0.3.21",
     "typedoc": "^0.28.20",
     "typescript": "^5.5.0",

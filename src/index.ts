@@ -92,3 +92,10 @@ export type { Network, NetworkSpec, EntityId, AccountRef, AssetRef } from "./cai
 export { fromReceipt } from "./adapters/receipt.js";
 export type { ReceiptLike, MovementLike, NftMovementLike } from "./adapters/receipt.js";
 export { fulfils, fulfilsAccumulating } from "./adapters/notifications.js";
+export { fromX402, toX402 } from "./adapters/x402.js";
+export type {
+  FromX402Options,
+  ToX402Options,
+  X402Requirements,
+  X402RequirementsLike,
+} from "./adapters/x402.js";

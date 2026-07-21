@@ -27,7 +27,7 @@
  */
 export { match } from "./pipeline.js";
 export type { MatchOptions } from "./pipeline.js";
-export { correlate, canonicalize, byUniqueAmount } from "./correlate.js";
+export { correlate, canonicalize, byTransactionId, byUniqueAmount } from "./correlate.js";
 export type { CorrelationStrategy } from "./correlate.js";
 export { assignDistinctAmount } from "./amounts.js";
 export type { AssignAmountOptions } from "./amounts.js";

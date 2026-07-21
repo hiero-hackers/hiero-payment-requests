@@ -14,9 +14,11 @@
  *
  *   unique amount          SHIPPED below as `byUniqueAmount` — no memo needed;
  *                          see its doc for the trade it makes
+ *   known transaction id   SHIPPED below as `byTransactionId` — for rails that
+ *                          hand the settlement id back (x402, scheduled
+ *                          transactions, wallet callbacks); correlation stops
+ *                          being a heuristic at all
  *   account per invoice    unambiguous, costs an account creation
- *   scheduled transaction  the payer signs a pre-built transfer — Hedera-native,
- *                          and correlation stops being a heuristic at all
  *
  * This file exists so that swapping strategies is a swap, not a refactor:
  * everything downstream takes "the payments that claim to be for this request"
@@ -81,6 +83,48 @@ export const byUniqueAmount: CorrelationStrategy = (payments, resolved) =>
       payment.network === resolved.recipient.network &&
       creditedTotal(payment, resolved) === resolved.request.amount,
   );
+
+/**
+ * The out-of-band strategy: the caller already KNOWS which transaction is
+ * supposed to have paid — a settlement id handed back by a payment rail
+ * (x402's `SettleResponse`, a scheduled transaction the merchant built, a
+ * wallet callback). Correlation stops being a heuristic: a payment claims
+ * this request iff it IS that transaction — and is real, on the request's
+ * network. Every richer verdict survives, because tally still measures what
+ * that transaction actually credited: underpaid, overpaid, wrong-asset all
+ * report honestly.
+ *
+ * Hedera spells transaction ids two ways — `0.0.x@seconds.nanos` (SDK,
+ * HashScan, most rails) and `0.0.x-seconds-nanos` (mirror REST, so most
+ * `Payment`s) — and this strategy accepts either on either side. The id you
+ * PASS is validated loudly (a typo must not silently correlate nothing); a
+ * candidate payment whose id has some other shape simply never matches.
+ */
+export function byTransactionId(transactionId: string): CorrelationStrategy {
+  const wanted = canonicalTransactionId(transactionId);
+  if (wanted === undefined) {
+    throw new Error(
+      `not a Hedera transaction id: "${transactionId}" ` +
+        '(expected "0.0.x@seconds.nanos" or "0.0.x-seconds-nanos")',
+    );
+  }
+  return (payments, resolved) =>
+    payments.filter(
+      (payment) =>
+        payment.succeeded &&
+        payment.network === resolved.recipient.network &&
+        canonicalTransactionId(payment.transactionId) === wanted,
+    );
+}
+
+/** Both spellings → one canonical form (nanos zero-padded, so `@1.5` and
+ *  `-1-000000005` are the same id); anything else → undefined. */
+function canonicalTransactionId(id: string): string | undefined {
+  const parts =
+    /^(\d+\.\d+\.\d+)@(\d+)\.(\d+)$/.exec(id) ?? /^(\d+\.\d+\.\d+)-(\d+)-(\d+)$/.exec(id);
+  if (parts === null) return undefined;
+  return `${parts[1]}-${parts[2]}-${parts[3]!.padStart(9, "0")}`;
+}
 
 /**
  * The pipeline's canonicalization — **deduplicated** and in **consensus

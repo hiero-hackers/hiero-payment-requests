@@ -46,7 +46,7 @@ export { paymentInstructions } from "./instructions.js";
 export type { PaymentInstructions, InstructedAsset } from "./instructions.js";
 
 // ── Matching: what does the chain say about the request? ────────────────────
-export { match, byUniqueAmount, assignDistinctAmount } from "./match/index.js";
+export { match, byTransactionId, byUniqueAmount, assignDistinctAmount } from "./match/index.js";
 export type { MatchOptions, CorrelationStrategy, AssignAmountOptions } from "./match/index.js";
 export { compareTimestamps, isAfter, isConsensusTimestamp } from "./timestamp.js";
 

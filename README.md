@@ -298,7 +298,10 @@ the box: `byUniqueAmount` correlates on an exactly-unique amount instead —
 units of dust above the price), and then any wallet that can send a number
 works, memo or no memo. The trade is stated in its doc: near-misses
 (underpaid, overpaid, fee-skimmed) report `unpaid`, because with no other
-correlator they cannot honestly be claimed for this request. Strategies are
+correlator they cannot honestly be claimed for this request. And where a rail
+hands the settlement's transaction id back (x402, scheduled transactions),
+`byTransactionId` correlates on identity itself — no memo, no heuristic, and
+every richer verdict intact. Strategies are
 injectable (`MatchOptions.correlate`) and the pipeline canonicalizes whatever
 a strategy returns, so the match invariants hold for every strategy. The
 endgame is **scheduled transactions**, where correlation stops being a

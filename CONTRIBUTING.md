@@ -22,6 +22,16 @@ package lint (publint + attw), and the pack smoke test. CI and the release
 workflow run the same list — if `verify` passes locally, CI agrees. Commits need a DCO sign-off (`git commit -s`).
 Maintainers: the release runbook is [RELEASING.md](./RELEASING.md).
 
+## Proposing upstream standards / HIPs
+
+Repository-local draft HIPs live under [docs/](./docs/) and should follow the
+official Hiero HIP template structure. When a proposal is ready for upstream
+review, it should be copied into the upstream
+[hiero-improvement-proposals](https://github.com/hiero-ledger/hiero-improvement-proposals)
+repository with the required metadata and content updates. All contributions,
+including HIP drafts, require the same DCO sign-off as code changes
+(`git commit -s`).
+
 ## Ground rules
 
 - **It computes the facts; the caller's policy decides what they mean.**

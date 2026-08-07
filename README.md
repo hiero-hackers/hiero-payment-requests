@@ -243,7 +243,7 @@ non-Hiero chains: `eip155:1` would parse fine, but the matching semantics
 (memos, consensus timestamps, net credits) are Hiero's, and claiming otherwise
 would be a quiet lie.
 
-A draft HIP for the wire format lives in [docs/hip-hiero-pay-draft.md](docs/hip-hiero-pay-draft.md).
+A draft HIP for the wire format lives in [docs/hip-hiero-pay-draft.md](docs/HIP-Hiero-Pay.md).
 
 NFT requests match **exactly their serial** all the way through: a receipt's
 incoming NFTs become credits of `nft:<token>/<serial>`, so serial #4 of the same
